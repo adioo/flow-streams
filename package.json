@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/adioo/flow-streams/issues"
   },
-  "homepage": "https://github.com/adioo/flow-streams#readme"
+  "homepage": "https://github.com/adioo/flow-streams#readme",
+  "dependencies": {
+    "JSONStream": "^1.2.1"
+  }
 }
