@@ -1,7 +1,7 @@
 "use strict"
 
 const JSONStream = require('JSONStream');
-const Stream = require('stream').Stream;
+const PassThrough = require('stream').PassThrough;
 
 exports.combine = (scope, inst, args, data, next) => {
 
@@ -15,7 +15,7 @@ exports.combine = (scope, inst, args, data, next) => {
             return next(null, data);
         }
 
-        const combinedStream = new Stream.PassThrough({objectMode: true});
+        const combinedStream = new PassThrough({objectMode: true});
         const endHandler = () => {!(--combinedStream.length) && combinedStream.end()};
 
         combinedStream.length = data[key].length;
@@ -26,24 +26,6 @@ exports.combine = (scope, inst, args, data, next) => {
         });
         data[args[key]] = combinedStream;
     }
-
-    next(null, data);
-};
-
-exports.transform = (scope, insta, args, data, next) => {
-
-    const transform = new Stream.Transform({
-        objectMode: true,
-        transform: (chunk, enc, done) => {
-            done(null, [
-                chunk.subject[0] === '<' ? chunk.subject.slice(1, -1) : chunk.subject,
-                chunk.predicate.slice(1, -1),
-                chunk.id[0] === '<' ? chunk.id.slice(1, -1) : chunk.id
-            ]);
-        }
-    });
-
-    data.readable = data.readable.pipe(transform);
 
     next(null, data);
 };
