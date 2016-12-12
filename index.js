@@ -27,7 +27,7 @@ exports.combine = (scope, inst, args, data, next) => {
         data[args[key]] = combinedStream;
     }
 
-    next(null, data);
+    return next ? next(null, data) : data;
 };
 
 exports.json = {
@@ -49,7 +49,7 @@ exports.json = {
             }
         }
 
-        next(null, data);
+        return next ? next(null, data) : data;
     },
 
     stringify: (scope, inst, args, data, next) => {
