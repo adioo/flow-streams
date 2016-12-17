@@ -21,13 +21,13 @@ exports.combine = (scope, inst, args, data, next) => {
         combinedStream.length = data[key].length;
         data[key].forEach((stream, index) => {
             stream.on('data', chunk => combinedStream.push(chunk));
-            stream.on('error', error => combinedStrea.emit('error', error));
+            stream.on('error', error => combinedStream.emit('error', error));
             stream.on('end', endHandler);
         });
         data[args[key]] = combinedStream;
     }
 
-    next(null, data);
+    return next ? next(null, data) : data;
 };
 
 exports.json = {
@@ -49,7 +49,7 @@ exports.json = {
             }
         }
 
-        next(null, data);
+        return next ? next(null, data) : data;
     },
 
     stringify: (scope, inst, args, data, next) => {
