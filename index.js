@@ -2,17 +2,18 @@
 
 const JSONStream = require('JSONStream');
 const PassThrough = require('stream').PassThrough;
+const concat = require('concat-stream');
 
-exports.combine = (scope, inst, args, data, next) => {
+exports.combine = (args, data, callback) => {
 
     for (let key in args) {
 
         if (!data[key]) {
-            return next(new Error('Flow-streams.combine: No streams to found.'));
+            return callback(new Error('Flow-streams.combine: No streams to found.'));
         }
 
         if (data[key].pipe) {
-            return next(null, data);
+            return callback(null, data);
         }
 
         const combinedStream = new PassThrough({objectMode: true});
@@ -27,17 +28,31 @@ exports.combine = (scope, inst, args, data, next) => {
         data[args[key]] = combinedStream;
     }
 
-    return next ? next(null, data) : data;
+    return callback ? callback(null, data) : data;
+};
+
+exports.concat = (args, data, callback) => {
+
+    if (!args.stream || !data[args.stream]) {
+        return callback();
+    }
+
+    data[args.stream].pipe(concat(chunk => {
+        data[args.to] = chunk;
+        callback();
+    }));
+
+    data[args.stream].on('error', callback);
 };
 
 exports.json = {
 
-    parse: (scope, inst, args, data, next) => {
+    parse: (args, data, callback) => {
 
         for (let key in args) {
 
             if (!data[key]) {
-                return next(new Error('Flow-streams.parse: No streams to found.'));
+                return callback(new Error('Flow-streams.parse: No streams to found.'));
             }
 
             if (data[key] instanceof Array) {
@@ -49,15 +64,15 @@ exports.json = {
             }
         }
 
-        return next ? next(null, data) : data;
+        return callback ? callback(null, data) : data;
     },
 
-    stringify: (scope, inst, args, data, next) => {
+    stringify: (scope, inst, args, data, callback) => {
 
         for (let key in args) {
 
             if (!data[key]) {
-                return next(new Error('Flow-streams.stringify: No streams to found.'));
+                return callback(new Error('Flow-streams.stringify: No streams to found.'));
             }
             if (data[key] instanceof Array) {
                 data[key].forEach((stream, index) => {
@@ -68,6 +83,6 @@ exports.json = {
             }
         }
 
-        next(null, data);
+        callback(null, data);
     }
 };
