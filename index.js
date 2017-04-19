@@ -2,6 +2,7 @@
 
 const JSONStream = require('JSONStream');
 const PassThrough = require('stream').PassThrough;
+const concat = require('concat-stream');
 
 exports.combine = (args, data, callback) => {
 
@@ -28,6 +29,20 @@ exports.combine = (args, data, callback) => {
     }
 
     return callback ? callback(null, data) : data;
+};
+
+exports.concat = (args, data, callback) => {
+
+    if (!args.stream || !data[args.stream]) {
+        return callback();
+    }
+
+    data[args.stream].pipe(concat(chunk => {
+        data[args.to] = chunk;
+        callback();
+    }));
+
+    data[args.stream].on('error', callback);
 };
 
 exports.json = {
